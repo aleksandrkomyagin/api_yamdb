@@ -68,3 +68,29 @@ class EmailVerification(models.Model):
 
     def __str__(self):
         return f'EmailVerification object for {self.user.email}'
+
+
+class Categories(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True)
+
+
+class Genres(models.Model):
+    name = models.CharField(max_length=56, unique=True)
+    slug = models.SlugField(unique=True)
+
+
+class Titles(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    year = models.DateField()
+    category = models.ForeignKey(Categories,
+                                 on_delete=models.SET_NULL,
+                                 related_name='titles',
+                                 null=True)
+    ganre = models.ManyToManyField(Genres, through=TitleGenres)
+
+
+class TitleGenres (models.Model):
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
