@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from .validators import validate_username
+
 
 USER = 'user'
 ADMIN = 'admin'
@@ -15,6 +17,7 @@ ROLE_CHOICES = [
 
 class User(AbstractUser):
     username = models.CharField(
+        validators=(validate_username,),
         max_length=150,
         unique=True,
         blank=False,
@@ -47,6 +50,18 @@ class User(AbstractUser):
         max_length=150,
         blank=True
     )
+
+    @property
+    def is_user(self):
+        return self.role == USER
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
 
     class Meta:
         ordering = ('id',)
