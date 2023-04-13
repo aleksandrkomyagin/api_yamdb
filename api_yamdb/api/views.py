@@ -52,3 +52,4 @@ def get_token_view(request):
     return Response(
         {'confirmation_code': 'Неверный код подтверждения!'},
         status=status.HTTP_400_BAD_REQUEST)
+
