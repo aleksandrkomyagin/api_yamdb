@@ -8,12 +8,12 @@ from .views import CategoriesViewSet, GenresViewSet, TitlesViewSet
 app_name = 'api'
 
 router = DefaultRouter()
-router.register(r'v1/categories', CategoriesViewSet)
-router.register(r'v1/genres', GenresViewSet)
-router.register(r'v1/titles', TitlesViewSet)
+router.register(r'categories', CategoriesViewSet)
+router.register(r'genres', GenresViewSet)
+router.register(r'titles', TitlesViewSet)
 
 urlpatterns = [
-    path('v1/registration/', get_confirmation_code, name='registration'),
-    path('v1/token/', get_token_view, name='token'),
-    path('', include(router.urls)),
+    path('v1/', include(router.urls)),
+    path('v1/auth/signup/', get_confirmation_code, name='registration'),
+    path('v1/auth/token/', get_token_view, name='token')
 ]
