@@ -13,6 +13,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, EmailVerification, Genre, Review, Title
 
+from .filters import TitleFilter
+from .mixins import CreateListDeleteViewSet
 from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
                              IsAuthorOrReadOnlyPermission)
 from api.serializers import (AdminSerializer, CategorySerializer,
@@ -21,9 +23,6 @@ from api.serializers import (AdminSerializer, CategorySerializer,
                              PostTitleSerializer, ReviewSerializer,
                              UserConfirmationCodeSerializer,
                              UserTokenSerializer)
-
-from .filters import TitleFilter
-from .mixins import CreateListDeleteViewSet
 
 User = get_user_model()
 
