@@ -1,22 +1,29 @@
 import uuid
 
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import LimitOffsetPagination
+from reviews.models import Category, EmailVerification, Genre, Review, Title
 
-from reviews.models import EmailVerification, Review, Title
-
-from api.permissions import IsAdminUser, IsAuthorOrReadOnlyPermission
-from api.serializers import (AdminSerializer, NotAdminSerializer,
+from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
+                             IsAuthorOrReadOnlyPermission)
+from api.serializers import (AdminSerializer, CategorySerializer,
+                             CommentSerializer, GenreSerializer,
+                             GetTitleSerializer, NotAdminSerializer,
+                             PostTitleSerializer, ReviewSerializer,
                              UserConfirmationCodeSerializer,
-                             UserTokenSerializer, CommentSerializer,
-                             ReviewSerializer)
+                             UserTokenSerializer)
+
+from .filters import TitleFilter
+from .mixins import CreateListDeleteViewSet
 
 User = get_user_model()
 
@@ -117,6 +124,38 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+
+
+class CategoryViewSet(CreateListDeleteViewSet):
+    """Операции связананные с категориями"""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+
+
+class GenreViewSet(CreateListDeleteViewSet):
+    """Операции связананные с жанрами"""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Операции связананные с названиями произведений"""
+    queryset = Title.objects.all().annotate(
+        Avg('reviews__score')).order_by('name')
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return PostTitleSerializer
+        return GetTitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
