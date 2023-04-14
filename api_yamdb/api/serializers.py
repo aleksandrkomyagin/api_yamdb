@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
 from reviews.validators import validate_username
+from reviews.models import Comment, Review
+
 
 User = get_user_model()
 
@@ -38,3 +41,35 @@ class NotAdminSerializer(serializers.ModelSerializer):
             'last_name', 'bio'
         )
         read_only_fields = ('role',)
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+    )
+
+    def create(self, validated_data):
+        if Review.objects.filter(
+            author=self.context['request'].user,
+            title=validated_data.get('title')
+        ).exists():
+            raise serializers.ValidationError(
+                'Нельзя оставить больше одного отзыва.')
+
+        return Review.objects.create(**validated_data,)
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+    )
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
