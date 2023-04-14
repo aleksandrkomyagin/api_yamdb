@@ -16,8 +16,7 @@ from users.models import EmailVerification
 from .filters import TitleFilter
 from .mixins import CreateListDeleteViewSet
 from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
-                             IsAuthorModeratorAdminOrReadOnly,
-                             IsAuthorOrReadOnlyPermission)
+                             IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (AdminSerializer, CategorySerializer,
                              CommentSerializer, GenreSerializer,
                              GetTitleSerializer, NotAdminSerializer,
@@ -178,7 +177,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthorOrReadOnlyPermission,)
+    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = CommentSerializer
 
     def get_queryset(self):
