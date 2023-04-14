@@ -1,5 +1,7 @@
+import datetime as dt
 import re
 
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 
@@ -14,3 +16,11 @@ def validate_username(value):
             f'Не допустимые символы <{value}> в нике.',
             {'value': value}
         )
+
+
+def validate_year(value):
+    if dt.date.today().year < value:
+        raise ValidationError(
+            'Год создания не может быть больше текущего'
+        )
+    return value
