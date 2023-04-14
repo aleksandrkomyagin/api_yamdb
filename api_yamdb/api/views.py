@@ -8,14 +8,15 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, EmailVerification, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title, EmailVerification
+# from users.models import EmailVerification
 
 from .filters import TitleFilter
 from .mixins import CreateListDeleteViewSet
 from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
+                             IsAuthorModeratorAdminOrReadOnly,
                              IsAuthorOrReadOnlyPermission)
 from api.serializers import (AdminSerializer, CategorySerializer,
                              CommentSerializer, GenreSerializer,
@@ -84,6 +85,7 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
         methods=['GET', 'PATCH'],
@@ -158,8 +160,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthorOrReadOnlyPermission,)
-    pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = ReviewSerializer
 
     def check_title(self):
@@ -177,8 +178,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthorOrReadOnlyPermission,)
-    pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = CommentSerializer
 
     def get_queryset(self):
