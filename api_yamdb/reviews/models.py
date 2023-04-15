@@ -79,6 +79,10 @@ class Title(models.Model):
         db_index=True
     )
 
+    @property
+    def get_genre(self):
+        return self.genre.name
+
     class Meta:
         ordering = ('name',)
         verbose_name = 'Произведение'
@@ -109,11 +113,14 @@ class GenreTitle(models.Model):
 class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
-        related_name='reviews')
-    text = models.TextField()
+        related_name='reviews',
+        verbose_name='произведение')
+    text = models.TextField('текст отзыва',)
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE)
+        User, on_delete=models.CASCADE,
+        verbose_name='автор отзыва')
     score = models.IntegerField(
+        'оценка',
         validators=[
             MinValueValidator(
                 1,
@@ -143,8 +150,9 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE)
-    text = models.TextField()
+        User, on_delete=models.CASCADE,
+        verbose_name='автор комментария')
+    text = models.TextField('текст',)
     pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
@@ -153,7 +161,8 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         related_name='comments',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='отзыв'
     )
 
     class Meta:
