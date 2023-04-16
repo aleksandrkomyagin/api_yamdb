@@ -72,13 +72,14 @@ class User(AbstractUser):
 
 
 class EmailVerification(models.Model):
-    code = models.UUIDField(unique=True)
+    code = models.UUIDField('код подтверждения', unique=True)
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name='code'
+        related_name='code',
+        verbose_name='пользователь',
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField('дата верификации', auto_now_add=True)
 
     def __str__(self):
         return f'EmailVerification object for {self.user.email}'
