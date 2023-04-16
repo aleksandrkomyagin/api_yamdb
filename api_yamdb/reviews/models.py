@@ -29,7 +29,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
-        max_length=256
+        max_length=256,
     )
     slug = models.SlugField(
         verbose_name='Идентификатор',
@@ -79,10 +79,6 @@ class Title(models.Model):
         db_index=True
     )
 
-    @property
-    def get_genre(self):
-        return self.genre.name
-
     class Meta:
         ordering = ('name',)
         verbose_name = 'Произведение'
@@ -103,11 +99,11 @@ class GenreTitle(models.Model):
         Genre, on_delete=models.SET_NULL,
         verbose_name='Жанр',
         blank=True,
-        null=True
+        null=True,
     )
 
     def __str__(self):
-        return self.genre
+        return self.genre.name
 
 
 class Review(models.Model):
