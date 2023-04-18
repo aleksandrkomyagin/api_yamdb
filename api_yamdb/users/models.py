@@ -4,13 +4,16 @@ from django.db import models
 from .validators import validate_username
 
 USER = 'user'
+STAFF = 'staff'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
+SUPERUSER = 'superuser'
 
 ROLE_CHOICES = [
-    (USER, USER),
+    (STAFF, STAFF),
     (ADMIN, ADMIN),
     (MODERATOR, MODERATOR),
+    (SUPERUSER, SUPERUSER),
 ]
 
 
@@ -19,44 +22,28 @@ class User(AbstractUser):
         validators=(validate_username,),
         max_length=150,
         unique=True,
-        blank=False,
-        null=False
     )
     email = models.EmailField(
-        max_length=254,
         unique=True,
-        blank=False,
-        null=False
     )
     role = models.CharField(
         'роль',
         max_length=20,
         choices=ROLE_CHOICES,
         default=USER,
-        blank=True
     )
     bio = models.TextField(
         'биография',
         blank=True,
     )
-    first_name = models.CharField(
-        'имя',
-        max_length=150,
-        blank=True
-    )
-    last_name = models.CharField(
-        'фамилия',
-        max_length=150,
-        blank=True
-    )
-
-    @property
-    def is_user(self):
-        return self.role == USER
 
     @property
     def is_admin(self):
-        return self.role == ADMIN
+        return (
+            self.role == ADMIN
+            or self.role == STAFF
+            or self.role == SUPERUSER
+        )
 
     @property
     def is_moderator(self):
