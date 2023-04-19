@@ -1,3 +1,4 @@
+from api_yamdb.settings import MAX_LENGHT_255
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -10,7 +11,7 @@ User = get_user_model()
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории',
-        max_length=256
+        max_length=MAX_LENGHT_255
     )
     slug = models.SlugField(
         verbose_name='Идентификатор',
@@ -29,7 +30,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
-        max_length=256,
+        max_length=MAX_LENGHT_255,
     )
     slug = models.SlugField(
         verbose_name='Идентификатор',
@@ -48,7 +49,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(
         verbose_name='Название произведения',
-        max_length=256
+        max_length=MAX_LENGHT_255
     )
     year = models.IntegerField(
         verbose_name='Дата выхода',
@@ -64,19 +65,11 @@ class Title(models.Model):
     )
     description = models.TextField(
         'Описание произведения',
-        null=True,
         blank=True
     )
     genre = models.ManyToManyField(
         Genre, through='GenreTitle',
         verbose_name='Жанр',
-        db_index=True
-    )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг',
-        null=True,
-        default=None,
-        db_index=True
     )
 
     class Meta:
