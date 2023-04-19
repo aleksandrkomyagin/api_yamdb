@@ -46,6 +46,5 @@ class TitleAdmin(admin.ModelAdmin):
     list_select_related = ('category',)
     list_display = ('name', 'year', 'category', 'description')
     search_fields = ('name', 'year', 'category__slug', 'genre__slug')
-    list_filter = ('name', 'year', 'genre', 'rating')
+    list_filter = ('name', 'year', 'genre')
     empty_value_display = '-пусто-'
-    readonly_fields = ('rating', )

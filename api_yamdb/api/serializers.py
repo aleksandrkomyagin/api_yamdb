@@ -1,7 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import validate_username
+from api_yamdb.settings import EMAIL_MAX_LENGHT_254
 
 User = get_user_model()
 
@@ -12,15 +16,22 @@ class UserConfirmationCodeSerializer(serializers.Serializer):
         required=True,
         validators=[validate_username]
     )
-    email = serializers.EmailField(max_length=254, required=True)
+    email = serializers.EmailField(
+        max_length=EMAIL_MAX_LENGHT_254,
+        required=True
+    )
 
 
 class UserTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[validate_username]
+    )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
 
-class AdminSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -30,14 +41,9 @@ class AdminSerializer(serializers.ModelSerializer):
         )
 
 
-class NotAdminSerializer(serializers.ModelSerializer):
+class NotAdminSerializer(UserSerializer):
 
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio'
-        )
+    class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
 
 
@@ -67,9 +73,7 @@ class PostTitleSerializer(serializers.ModelSerializer):
 
 
 class GetTitleSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(
-        source='reviews__score__avg', read_only=True
-    )
+    rating = serializers.IntegerField(read_only=True)
     genre = GenreSerializer(many=True)
     category = CategorySerializer(read_only=True)
 
@@ -88,15 +92,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    def create(self, validated_data):
-        if Review.objects.filter(
-            author=self.context['request'].user,
-            title=validated_data.get('title')
-        ).exists():
-            raise serializers.ValidationError(
-                'Нельзя оставить больше одного отзыва.')
-
-        return Review.objects.create(**validated_data,)
+    def validate(self, data):
+        request = self.context['request']
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == 'POST':
+            if Review.objects.filter(
+                    title=title,
+                    author=request.user).exists():
+                raise serializers.ValidationError(
+                    'Нельзя оставить больше одного отзыва'
+                )
+        return data
 
     class Meta:
         model = Review

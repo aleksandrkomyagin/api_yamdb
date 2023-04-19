@@ -21,8 +21,12 @@ v1_router.register(r'titles', TitleViewSet, basename='titles')
 
 app_name = 'api'
 
+auth_urlpatterns = [
+    path('signup/', get_confirmation_code, name='registration'),
+    path('token/', get_token_view, name='token'),
+]
+
 urlpatterns = [
     path('v1/', include(v1_router.urls), name='router_urls'),
-    path('v1/auth/signup/', get_confirmation_code, name='registration'),
-    path('v1/auth/token/', get_token_view, name='token'),
+    path('v1/auth/', include(auth_urlpatterns), name='auth_urls'),
 ]
