@@ -1,28 +1,22 @@
-import uuid
-
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
-from users.models import EmailVerification
 
 from .filters import TitleFilter
 from .mixins import CreateListDeleteViewSet
 from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
                              IsAuthorModeratorAdminOrReadOnly)
-from api.serializers import (AdminSerializer, CategorySerializer,
-                             CommentSerializer, GenreSerializer,
-                             GetTitleSerializer, NotAdminSerializer,
-                             PostTitleSerializer, ReviewSerializer,
-                             UserConfirmationCodeSerializer,
-                             UserTokenSerializer)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, GetTitleSerializer,
+                             NotAdminSerializer, PostTitleSerializer,
+                             ReviewSerializer, UserConfirmationCodeSerializer,
+                             UserSerializer, UserTokenSerializer)
 
 User = get_user_model()
 
@@ -30,28 +24,27 @@ User = get_user_model()
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def get_confirmation_code(request):
-    username = request.data.get('username')
-    email = request.data.get('email')
     serializers = UserConfirmationCodeSerializer(data=request.data)
     serializers.is_valid(raise_exception=True)
     username = serializers.validated_data.get('username')
     email = serializers.validated_data.get('email')
-    try:
-        user, sts = User.objects.get_or_create(username=username, email=email)
-    except (User.DoesNotExist, IntegrityError) as er:
-        return Response(
-            {"Ошибка": f"{er}"},
-            status=status.HTTP_400_BAD_REQUEST)
-    if sts:
-        code = uuid.uuid4()
-        EmailVerification.objects.create(user=user, code=code)
-    code = EmailVerification.objects.get(user=user).code
-    send_mail(
-        subject='Confirmation Code',
-        message=f'Ваш код активации: {code}',
-        recipient_list=[email, ],
-        from_email='from@example.com',
-    )
+    target_user = User.objects.filter(username=username, email=email).first()
+    if target_user:
+        target_user.send_mail
+        return Response(serializers.data)
+    else:
+        user_by_username = User.objects.filter(username=username)
+        user_by_email = User.objects.filter(email=email)
+        if user_by_username:
+            return Response(
+                {"Ошибка": "Пользователь с введенным username существует!"},
+                status=status.HTTP_400_BAD_REQUEST)
+        if user_by_email:
+            return Response(
+                {"Ошибка": "Пользователь с введенным email существует!"},
+                status=status.HTTP_400_BAD_REQUEST)
+    user = User.objects.create(username=username, email=email)
+    user.send_mail
     return Response(serializers.data)
 
 
@@ -61,17 +54,16 @@ def get_token_view(request):
     serializer = UserTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist as er:
+    user = User.objects.filter(username=username).first()
+    if not user:
         return Response(
-            {"Ошибка": f"{er}"},
+            {"Ошибка": "Нет пользователь с таким username"},
             status=status.HTTP_404_NOT_FOUND)
-    code = EmailVerification.objects.get(user=user).code
+    code = user.confirmation_code
     if serializer.validated_data.get('confirmation_code') == str(code):
-        token = RefreshToken.for_user(user).access_token
+        token = AccessToken.for_user(user)
         return Response({'token': str(token)},
-                        status=status.HTTP_201_CREATED)
+                        status=status.HTTP_200_OK)
     return Response(
         {'confirmation_code': 'Неверный код подтверждения!'},
         status=status.HTTP_400_BAD_REQUEST)
@@ -79,8 +71,8 @@ def get_token_view(request):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = AdminSerializer
-    permission_classes = (permissions.IsAuthenticated, IsAdminUser)
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminUser, permissions.IsAuthenticated)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
@@ -93,37 +85,16 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='me'
     )
     def get_update_user(self, request):
-        serializer = AdminSerializer(request.user)
+        serializer = UserSerializer(request.user)
         if request.method == 'PATCH':
-            if request.user.is_admin:
-                serializer = AdminSerializer(
-                    request.user,
-                    data=request.data,
-                    partial=True)
-            else:
-                serializer = NotAdminSerializer(
-                    request.user,
-                    data=request.data,
-                    partial=True)
+            serializer = NotAdminSerializer(
+                request.user,
+                data=request.data,
+                partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        username = request.data['username']
-        user = User.objects.get(username=username)
-        code = uuid.uuid4()
-        EmailVerification.objects.create(user=user, code=code)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
 
 
 class CategoryViewSet(CreateListDeleteViewSet):

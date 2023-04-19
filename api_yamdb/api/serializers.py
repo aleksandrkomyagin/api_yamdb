@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import validate_username
 
@@ -16,11 +18,15 @@ class UserConfirmationCodeSerializer(serializers.Serializer):
 
 
 class UserTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[validate_username]
+    )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
 
-class AdminSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -30,14 +36,9 @@ class AdminSerializer(serializers.ModelSerializer):
         )
 
 
-class NotAdminSerializer(serializers.ModelSerializer):
+class NotAdminSerializer(UserSerializer):
 
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio'
-        )
+    class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
 
 
