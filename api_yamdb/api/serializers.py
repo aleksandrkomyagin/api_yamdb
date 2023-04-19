@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 
@@ -91,15 +92,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    def create(self, validated_data):
-        if Review.objects.filter(
-            author=self.context['request'].user,
-            title=validated_data.get('title')
-        ).exists():
-            raise serializers.ValidationError(
-                'Нельзя оставить больше одного отзыва.')
-
-        return Review.objects.create(**validated_data,)
+    def validate(self, data):
+        request = self.context['request']
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == 'POST':
+            if Review.objects.filter(
+                    title=title,
+                    author=request.user).exists():
+                raise serializers.ValidationError(
+                    'Нельзя оставить больше одного отзыва'
+                )
+        return data
 
     class Meta:
         model = Review

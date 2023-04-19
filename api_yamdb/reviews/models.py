@@ -110,7 +110,7 @@ class Review(models.Model):
         User, on_delete=models.CASCADE,
         verbose_name='автор отзыва'
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         'оценка',
         validators=[
             MinValueValidator(
@@ -136,7 +136,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text
+        return self.text[:15]
 
 
 class Comment(models.Model):
@@ -164,4 +164,4 @@ class Comment(models.Model):
         verbose_name = 'Коментарий к отзыву'
 
     def __str__(self):
-        return self.text
+        return self.text[:15]
