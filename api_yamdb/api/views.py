@@ -151,16 +151,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        review_id = self.kwargs.get('review_id')
-        title_id = self.kwargs.get('title_id')
-        review = get_object_or_404(Review, pk=review_id, title_id=title_id)
-
+        review = get_object_or_404(
+            Review,
+            pk=self.kwargs.get('review_id'),
+            title=self.kwargs.get('title_id')
+        )
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review_id = self.kwargs.get('review_id')
-        title_id = self.kwargs.get('title_id')
-        review = get_object_or_404(Review, pk=review_id)
-        serializer.save(author=self.request.user,
-                        review=review,
-                        title_id=title_id)
+        review = get_object_or_404(
+            Review,
+            pk=self.kwargs.get('review_id'),
+            title=self.kwargs.get('title_id')
+        )
+        serializer.save(
+            author=self.request.user,
+            review=review
+        )
