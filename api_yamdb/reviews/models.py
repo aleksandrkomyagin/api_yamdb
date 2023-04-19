@@ -1,4 +1,4 @@
-from api_yamdb.settings import MAX_LENGHT_255
+from api_yamdb.settings import MAX_LENGHT_256
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -11,7 +11,7 @@ User = get_user_model()
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории',
-        max_length=MAX_LENGHT_255
+        max_length=MAX_LENGHT_256
     )
     slug = models.SlugField(
         verbose_name='Идентификатор',
@@ -30,7 +30,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
-        max_length=MAX_LENGHT_255,
+        max_length=MAX_LENGHT_256,
     )
     slug = models.SlugField(
         verbose_name='Идентификатор',
@@ -49,7 +49,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(
         verbose_name='Название произведения',
-        max_length=MAX_LENGHT_255
+        max_length=MAX_LENGHT_256
     )
     year = models.IntegerField(
         verbose_name='Дата выхода',
@@ -103,11 +103,13 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='произведение')
+        verbose_name='произведение'
+    )
     text = models.TextField('текст отзыва',)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        verbose_name='автор отзыва')
+        verbose_name='автор отзыва'
+    )
     score = models.IntegerField(
         'оценка',
         validators=[
@@ -125,7 +127,7 @@ class Review(models.Model):
         'Дата добавления', auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ['id']
+        ordering = ['pub_date']
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
         constraints = [
@@ -140,7 +142,8 @@ class Review(models.Model):
 class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        verbose_name='автор комментария')
+        verbose_name='автор комментария'
+    )
     text = models.TextField('текст',)
     pub_date = models.DateTimeField(
         'Дата добавления',
@@ -155,7 +158,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ['id']
+        ordering = ['pub_date']
         default_related_name = 'comments'
         verbose_name_plural = 'Коментарии к отзывам'
         verbose_name = 'Коментарий к отзыву'

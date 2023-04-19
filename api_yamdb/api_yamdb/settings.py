@@ -138,4 +138,5 @@ AUTH_USER_MODEL = 'users.User'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-MAX_LENGHT_255: int = 255
+MAX_LENGHT_256: int = 256
+EMAIL_MAX_LENGHT_254: int = 254

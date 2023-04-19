@@ -1,4 +1,4 @@
-from api_yamdb.settings import MAX_LENGHT_255
+from api_yamdb.settings import EMAIL_MAX_LENGHT_254
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -15,7 +15,10 @@ class UserConfirmationCodeSerializer(serializers.Serializer):
         required=True,
         validators=[validate_username]
     )
-    email = serializers.EmailField(max_length=MAX_LENGHT_255, required=True)
+    email = serializers.EmailField(
+        max_length=EMAIL_MAX_LENGHT_254,
+        required=True
+    )
 
 
 class UserTokenSerializer(serializers.Serializer):
