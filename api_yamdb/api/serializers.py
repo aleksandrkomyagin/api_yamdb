@@ -1,3 +1,4 @@
+from api_yamdb.settings import MAX_LENGHT_255
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -12,7 +13,7 @@ class UserConfirmationCodeSerializer(serializers.Serializer):
         required=True,
         validators=[validate_username]
     )
-    email = serializers.EmailField(max_length=254, required=True)
+    email = serializers.EmailField(max_length=MAX_LENGHT_255, required=True)
 
 
 class UserTokenSerializer(serializers.Serializer):
@@ -67,9 +68,7 @@ class PostTitleSerializer(serializers.ModelSerializer):
 
 
 class GetTitleSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(
-        source='reviews__score__avg', read_only=True
-    )
+    rating = serializers.IntegerField(read_only=True)
     genre = GenreSerializer(many=True)
     category = CategorySerializer(read_only=True)
 

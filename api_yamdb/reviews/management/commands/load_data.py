@@ -1,32 +1,34 @@
 from csv import DictReader
 
+from django.conf import settings
 from django.core.management import BaseCommand
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
 
-CSV_MODELS = [
-    [User, 'users.csv'],
-    [Category, 'category.csv'],
-    [Genre, 'genre.csv'],
-    [Title, 'titles.csv'],
-    [GenreTitle, 'genre_title.csv'],
-    [Review, 'review.csv'],
-    [Comment, 'comments.csv'],
-]
+CSV_MODELS = {
+    User: 'users.csv',
+    Category: 'category.csv',
+    Genre: 'genre.csv',
+    Title: 'titles.csv',
+    GenreTitle: 'genre_title.csv',
+    Review: 'review.csv',
+    Comment: 'comments.csv',
+}
 
 
 class Command(BaseCommand):
-    help = "Loads data from static/data/*.csv files"
+    help = ''
 
-    def handle(self, *args, **options):
-        self.stdout.write('Удаляем старые данные...')
-        for model, file in CSV_MODELS:
-            model.objects.all().delete()
-        self.stdout.write(self.style.NOTICE('Заполняем базу данных...'))
-
-        for model, file in CSV_MODELS:
-            for row in DictReader(
-                open('static/data/' + file, mode='r', encoding='utf-8')
-            ):
-                model.objects.get_or_create(**row)
-        self.stdout.write(self.style.SUCCESS('Успешно!'))
+    def handle(self, *args, **kwargs):
+        for model, csv_file in CSV_MODELS.items():
+            with open(
+                f'{settings.BASE_DIR}/static/data/{csv_file}',
+                'r',
+                encoding='utf-8'
+            ) as file:
+                reader = DictReader(file)
+                for r in reader:
+                    r.pop('id', 'Такого ключа нет')
+                model.objects.bulk_create(
+                    model(**data) for data in reader)
+        self.stdout.write(self.style.SUCCESS('Данные успешно загружены!'))
