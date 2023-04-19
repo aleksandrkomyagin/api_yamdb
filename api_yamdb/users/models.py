@@ -1,4 +1,7 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
+from django.core.mail import send_mail
 from django.db import models
 
 from .validators import validate_username
@@ -10,10 +13,9 @@ MODERATOR = 'moderator'
 SUPERUSER = 'superuser'
 
 ROLE_CHOICES = [
-    (STAFF, STAFF),
+    (USER, USER),
     (ADMIN, ADMIN),
-    (MODERATOR, MODERATOR),
-    (SUPERUSER, SUPERUSER),
+    (MODERATOR, MODERATOR)
 ]
 
 
@@ -37,36 +39,45 @@ class User(AbstractUser):
         blank=True,
     )
 
+    confirmation_code = models.UUIDField(
+        'код подтверждения',
+        unique=True,
+        max_length=255,
+        null=True,
+        blank=False)
+
+    def save(self, *args, **kwargs):
+        self.confirmation_code = uuid.uuid4()
+        super(User, self).save(*args, **kwargs)
+
     @property
     def is_admin(self):
-        return (
-            self.role == ADMIN
-            or self.role == STAFF
+        return bool(
+            self.is_superuser
             or self.role == SUPERUSER
+            or self.role == ADMIN
+            or self.is_staff
+            or self.role == STAFF
+            or self.role == ADMIN
         )
 
     @property
     def is_moderator(self):
         return self.role == MODERATOR
 
+    @property
+    def send_mail(self):
+        send_mail(
+            subject='Confirmation Code',
+            message=f'Ваш код активации: {self.confirmation_code}',
+            recipient_list=[self.email, ],
+            from_email='from@example.com',
+        )
+
     class Meta:
-        ordering = ('id',)
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
-
-
-class EmailVerification(models.Model):
-    code = models.UUIDField('код подтверждения', unique=True)
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name='code',
-        verbose_name='пользователь',
-    )
-    created = models.DateTimeField('дата верификации', auto_now_add=True)
-
-    def __str__(self):
-        return f'EmailVerification object for {self.user.email}'
