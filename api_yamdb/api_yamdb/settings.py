@@ -22,13 +22,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
 
+    'reviews',
     'users',
     'api',
-    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -138,5 +139,7 @@ AUTH_USER_MODEL = 'users.User'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-MAX_LENGHT_256: int = 256
-EMAIL_MAX_LENGHT_254: int = 254
+NAME_MAX_LENGHT: int = 256
+EMAIL_MAX_LENGHT: int = 254
+USERNAME_MAX_LENGHT: int = 150
+SLUG_MAX_LENGHT: int = 50
