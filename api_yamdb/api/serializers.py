@@ -1,30 +1,29 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
 
+from api_yamdb.settings import EMAIL_MAX_LENGHT, USERNAME_MAX_LENGHT
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import validate_username
-from api_yamdb.settings import EMAIL_MAX_LENGHT_254
 
 User = get_user_model()
 
 
 class UserConfirmationCodeSerializer(serializers.Serializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGHT,
         required=True,
         validators=[validate_username]
     )
     email = serializers.EmailField(
-        max_length=EMAIL_MAX_LENGHT_254,
+        max_length=EMAIL_MAX_LENGHT,
         required=True
     )
 
 
 class UserTokenSerializer(serializers.Serializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGHT,
         required=True,
         validators=[validate_username]
     )
@@ -41,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class NotAdminSerializer(UserSerializer):
+class UserNotIsAdminSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
@@ -74,7 +73,7 @@ class PostTitleSerializer(serializers.ModelSerializer):
 
 class GetTitleSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
-    genre = GenreSerializer(many=True)
+    genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
 
     class Meta:

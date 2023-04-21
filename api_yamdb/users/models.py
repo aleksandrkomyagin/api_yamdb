@@ -4,13 +4,11 @@ from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django.db import models
 
-from .validators import validate_username
+from users.validators import validate_username
 
 USER = 'user'
-STAFF = 'staff'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
-SUPERUSER = 'superuser'
 
 ROLE_CHOICES = [
     (USER, USER),
@@ -54,11 +52,8 @@ class User(AbstractUser):
     def is_admin(self):
         return bool(
             self.is_superuser
-            or self.role == SUPERUSER
             or self.role == ADMIN
             or self.is_staff
-            or self.role == STAFF
-            or self.role == ADMIN
         )
 
     @property
