@@ -15,7 +15,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              MeUserSerializer, PostTitleSerializer,
                              ReviewSerializer, UserConfirmationCodeSerializer,
                              UserSerializer, UserTokenSerializer)
-from api.utils import Block_PUT_method_ViewSet, GenreCategoryViewSet
+from api.utils import GenreCategoryViewSet, ViewSetWithoutPut
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
@@ -57,7 +57,7 @@ def get_token_view(request):
         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(Block_PUT_method_ViewSet, viewsets.ModelViewSet):
+class UserViewSet(ViewSetWithoutPut):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminUser, permissions.IsAuthenticated)
@@ -96,7 +96,7 @@ class GenreViewSet(GenreCategoryViewSet):
     serializer_class = GenreSerializer
 
 
-class TitleViewSet(Block_PUT_method_ViewSet):
+class TitleViewSet(ViewSetWithoutPut):
     """Операции связананные с названиями произведений"""
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews_title__score')).order_by('name')
@@ -110,7 +110,7 @@ class TitleViewSet(Block_PUT_method_ViewSet):
         return GetTitleSerializer
 
 
-class ReviewViewSet(Block_PUT_method_ViewSet):
+class ReviewViewSet(ViewSetWithoutPut):
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = ReviewSerializer
 
@@ -128,7 +128,7 @@ class ReviewViewSet(Block_PUT_method_ViewSet):
         serializer.save(author=self.request.user, title=self.get_title())
 
 
-class CommentViewSet(Block_PUT_method_ViewSet):
+class CommentViewSet(ViewSetWithoutPut):
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = CommentSerializer
 
