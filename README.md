@@ -45,7 +45,6 @@ $ source venv/Scripts/activate
 ```
 #### 4. Выполнить миграции:
 ```
-(venv) $ cd api_yamdb
 (venv) $ python3 manage.py migrate
 ```
 #### 5. Импортировать данные из csv-файлов в базу:
