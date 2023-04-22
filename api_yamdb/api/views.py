@@ -8,15 +8,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import GenreCategoryViewSet, TitleReviewCommentViewSet
 from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
                              IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTitleSerializer,
-                             PostTitleSerializer, ReviewSerializer,
-                             UserConfirmationCodeSerializer,
-                             UserNotIsAdminSerializer, UserSerializer,
-                             UserTokenSerializer)
+                             MeUserSerializer, PostTitleSerializer,
+                             ReviewSerializer, UserConfirmationCodeSerializer,
+                             UserSerializer, UserTokenSerializer)
+from api.utils import Block_PUT_method_ViewSet, GenreCategoryViewSet
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
@@ -48,10 +47,6 @@ def get_token_view(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     user = get_object_or_404(User, username=username)
-    if not user:
-        return Response(
-            {"Ошибка": "Нет пользователь с таким username"},
-            status=status.HTTP_404_NOT_FOUND)
     code = user.confirmation_code
     if serializer.validated_data.get('confirmation_code') == str(code):
         token = AccessToken.for_user(user)
@@ -62,14 +57,13 @@ def get_token_view(request):
         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(Block_PUT_method_ViewSet, viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminUser, permissions.IsAuthenticated)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
-    http_method_names = ('get', 'post', 'patch', 'delete')
 
     @action(
         methods=['GET', 'PATCH'],
@@ -80,7 +74,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_update_user(self, request):
         serializer = UserSerializer(request.user)
         if request.method == 'PATCH':
-            serializer = UserNotIsAdminSerializer(
+            serializer = MeUserSerializer(
                 request.user,
                 data=request.data,
                 partial=True)
@@ -102,7 +96,7 @@ class GenreViewSet(GenreCategoryViewSet):
     serializer_class = GenreSerializer
 
 
-class TitleViewSet(TitleReviewCommentViewSet):
+class TitleViewSet(Block_PUT_method_ViewSet):
     """Операции связананные с названиями произведений"""
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews_title__score')).order_by('name')
@@ -116,7 +110,7 @@ class TitleViewSet(TitleReviewCommentViewSet):
         return GetTitleSerializer
 
 
-class ReviewViewSet(TitleReviewCommentViewSet):
+class ReviewViewSet(Block_PUT_method_ViewSet):
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = ReviewSerializer
 
@@ -134,7 +128,7 @@ class ReviewViewSet(TitleReviewCommentViewSet):
         serializer.save(author=self.request.user, title=self.get_title())
 
 
-class CommentViewSet(TitleReviewCommentViewSet):
+class CommentViewSet(Block_PUT_method_ViewSet):
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
     serializer_class = CommentSerializer
 

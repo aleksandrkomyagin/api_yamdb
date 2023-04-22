@@ -9,9 +9,11 @@
 + Получение информации о пользователе по username(Администратор)
 + Просмотр информации собственного профиля
 
+
 ## Используемые технологии:
 | Название | Документация |
 | ------ | ------ |
+| Python 3.9.10 | [https://www.python.org/downloads/release/python-3910/][python] |
 | Django | [https://www.djangoproject.com/][django] |
 | django-rest-framework | [https://www.django-rest-framework.org/][DRF] |
 | django-rest-framework-simplejwt | [https://django-rest-framework-simplejwt.readthedocs.io/en/latest/index.html][simplejwt] |
@@ -43,9 +45,14 @@ $ source venv/Scripts/activate
 ```
 #### 4. Выполнить миграции:
 ```
+(venv) $ cd api_yamdb
 (venv) $ python3 manage.py migrate
 ```
-#### 5. Запустить сервер
+#### 5. Импортировать данные из csv-файлов в базу:
+```
+(venv) $ python3 manage.py load_data
+```
+#### 6. Запустить сервер
 ```
 (venv) $ python3 manage.py runserver
 ```
@@ -204,6 +211,7 @@ $ source venv/Scripts/activate
 
 [//]:#
 
+   [python]: <https://www.python.org/downloads/release/python-3910/>
    [simplejwt]: <https://django-rest-framework-simplejwt.readthedocs.io/en/latest/index.html>
    [djoser]: <https://djoser.readthedocs.io/en/latest/>
    [django]: <https://www.djangoproject.com/>

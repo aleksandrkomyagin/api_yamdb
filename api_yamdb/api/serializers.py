@@ -40,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class UserNotIsAdminSerializer(UserSerializer):
+class MeUserSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)

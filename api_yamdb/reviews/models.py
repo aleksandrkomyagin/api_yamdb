@@ -1,8 +1,8 @@
-from api_yamdb.settings import NAME_MAX_LENGHT, SLUG_MAX_LENGHT
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from api_yamdb.settings import NAME_MAX_LENGHT, SLUG_MAX_LENGHT
 from reviews.validators import validate_year
 
 User = get_user_model()
@@ -129,7 +129,7 @@ class Review(models.Model):
         'Дата добавления', auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ['pub_date']
+        ordering = ('pub_date',)
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
         constraints = [
@@ -161,7 +161,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ['pub_date']
+        ordering = ('pub_date',)
         default_related_name = 'comments'
         verbose_name_plural = 'Коментарии к отзывам'
         verbose_name = 'Коментарий к отзыву'
