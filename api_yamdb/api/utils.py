@@ -13,5 +13,5 @@ class GenreCategoryViewSet(
     search_fields = ('name',)
 
 
-class Block_PUT_method_ViewSet(viewsets.ModelViewSet):
+class ViewSetWithoutPut(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
